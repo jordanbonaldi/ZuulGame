@@ -1,0 +1,28 @@
+plugins {
+    id 'java'
+}
+
+group 'Zuul'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+jar {
+    manifest {
+        attributes("Implementation-Title": "Zuul Game",
+                "Implementation-Version": version,
+                "Main-Class": 'net.neferett.zuul.Main')
+    }
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compileOnly 'org.projectlombok:lombok:1.18.4'
+    annotationProcessor 'org.projectlombok:lombok:1.18.4'
+    compile group: 'org.reflections', name: 'reflections', version: '0.9.11'
+}
