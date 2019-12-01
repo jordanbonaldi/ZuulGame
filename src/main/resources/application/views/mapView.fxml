@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane prefHeight="400.0" prefWidth="331.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="net.neferett.zuul.gui.MapController">
+    <center>
+        <SplitPane>
+            <Pane prefHeight="411.0" prefWidth="430.0">
+                <ListView fx:id="gameNames" prefHeight="331.0" prefWidth="196.0" />
+            <ButtonBar layoutX="6.0" layoutY="345.0" prefHeight="39.0" prefWidth="185.0">
+              <buttons>
+                  <Button layoutX="140.0" layoutY="17.0" minWidth="19.0" mnemonicParsing="false" onMouseClicked="#exitProgram" prefHeight="24.0" prefWidth="122.0" text="Exit" />
+                <Button mnemonicParsing="false" onAction="#launchGameWithMap" prefHeight="27.0" text="Continue" />
+              </buttons>
+            </ButtonBar>
+            <ButtonBar layoutX="206.0" layoutY="14.0" prefHeight="40.0" prefWidth="109.0">
+              <buttons>
+                <Button mnemonicParsing="false" onAction="#importMap" prefHeight="27.0" prefWidth="107.0" text="Import Map" />
+              </buttons>
+            </ButtonBar>
+            </Pane>
+        </SplitPane>
+    </center>
+</BorderPane>

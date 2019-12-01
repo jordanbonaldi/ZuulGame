@@ -39,6 +39,14 @@ public class RoomsHandler {
     }
 
     /**
+     *
+     * @param room
+     */
+    public void createRoom(Room room) {
+        this.rooms.add(room);
+    }
+
+    /**
      * Adding an exit by room name
      * @param room Room name
      * @param exits List of exits by var args

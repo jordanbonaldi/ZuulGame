@@ -16,7 +16,7 @@ public @interface Command {
 
     String help() default "";
 
-    boolean activated() default true;
+    boolean gui() default true;
 
 }
 

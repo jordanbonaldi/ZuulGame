@@ -1,22 +1,21 @@
 package net.neferett.zuul.player;
 
 import lombok.Data;
-import lombok.experimental.Delegate;
-import net.neferett.zuul.gamemiscs.Item;
+import lombok.EqualsAndHashCode;
+import lombok.SneakyThrows;
+import net.neferett.zuul.Zuul;
 import net.neferett.zuul.gamemiscs.Room;
+import net.neferett.zuul.interpreter.Interpreter;
 
-import java.util.ArrayList;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class Player {
-
-    private final String name;
-
-    private Room currentRoom;
+public class Player extends Character {
 
     public Player(String name, Room currentRoom) {
-        this.name = name;
-        this.currentRoom = currentRoom;
+        super(name, currentRoom);
     }
 
     /**
@@ -28,34 +27,17 @@ public class Player {
     }
 
     /**
-     * Delegating player's inventory of player class
+     * Reading input 0 (System.in) until carriage return
      */
-    @Delegate
-    private ArrayList<Item> items = new ArrayList<>();
+    @Override
+    @SneakyThrows
+    public void nextRound() {
+        Interpreter interpreter = Zuul.getInstance().getInterpreter();
+        /*
+            Getting player's input
+         */
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
-    /**
-     * Sum of all the weights inside item list
-     * @return int
-     */
-    public int getTotalWeight() {
-        return items.stream().map(Item::getWeight).reduce(0, Integer::sum);
-    }
-
-    /**
-     * Prints player inventory
-     */
-    public void printInventory() {
-        System.out.println(this.name + "'s inventory: ");
-        this.items.forEach(e -> System.out.println(e.getName() + "(" + e.getWeight() + ")"));
-    }
-
-    /**
-     * Get item on player's inventory by name
-     *
-     * @param name item name by string
-     * @return Item
-     */
-    public Item getItem(String name) {
-        return this.items.stream().filter(e -> e.getName().equalsIgnoreCase(name)).findFirst().orElse(null);
+        interpreter.handleCommand(this, reader.readLine());
     }
 }

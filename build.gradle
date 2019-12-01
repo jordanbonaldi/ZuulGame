@@ -1,28 +1,43 @@
 plugins {
-    id 'java'
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.0.8'
+    id 'org.beryx.jlink' version '2.12.0'
+    id 'net.ltgt.apt' version '0.10'
+}
+
+repositories {
+    mavenCentral()
+    maven { url 'https://projectlombok.org/edge-releases' }
+}
+
+javafx {
+    version = "13"
+    modules = [ 'javafx.controls', 'javafx.fxml' ]
+}
+mainClassName = "ZuulFX/net.neferett.zuul.Main"
+
+jlink {
+    options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages']
+    launcher {
+        name = 'ZuulFX'
+    }
 }
 
 group 'Zuul'
 version '1.0-SNAPSHOT'
 
-sourceCompatibility = 1.8
-
-repositories {
-    mavenCentral()
-}
-
 jar {
     manifest {
-        attributes("Implementation-Title": "Zuul Game",
-                "Implementation-Version": version,
-                "Main-Class": 'net.neferett.zuul.Main')
+        attributes 'Implementation-Title': 'A Zuul Game',
+                'Implementation-Version': version,
+                'Main-Class': 'net.neferett.zuul.Main'
     }
+    baseName = project.name + '-all'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 }
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
-    compileOnly 'org.projectlombok:lombok:1.18.4'
-    annotationProcessor 'org.projectlombok:lombok:1.18.4'
-    compile group: 'org.reflections', name: 'reflections', version: '0.9.11'
+    compileOnly 'org.projectlombok:lombok:edge-SNAPSHOT'
+    annotationProcessor 'org.projectlombok:lombok:edge-SNAPSHOT'
 }

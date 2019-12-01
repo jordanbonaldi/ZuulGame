@@ -67,7 +67,7 @@ public class Interpreter {
      * @param player Player Object
      */
     @SneakyThrows
-    void handleCommand(Player player, String command) {
+    public void handleCommand(Player player, String command) {
         String commandName = this.getCommandName(command);
         String[] commandArgs = this.getCommandsArgs(command);
 
@@ -81,7 +81,7 @@ public class Interpreter {
                 .findFirst().orElse(null);
 
         if (null == extendableCommand) {
-            System.out.println("Command " + commandName + " not found. Type 'help' for help.");
+            Output.getInstance().print("Command " + commandName + " not found. Type 'help' for help.");
             return;
         }
 
@@ -96,16 +96,15 @@ public class Interpreter {
         if ((cmd.minLength() == 0 && cmd.argsLength() != commandArgs.length) ||
                 (cmd.minLength() > 0 && commandArgs.length < cmd.minLength())
         ){
-            System.out.println("Command " + cmd.name() + " mismatch args length");
-            System.out.println(cmd.help());
+            Output.getInstance().print("Command " + cmd.name() + " mismatch args length");
+            Output.getInstance().print(cmd.help());
             return;
         }
 
-        // Finally we check the command availability
-        if (cmd.activated())
-            // If command returns false we print an error
-            if (!extendableCommand.onCommand(player, commandArgs))
-                System.out.println("Error while performing command");
+
+        // If command returns false we print an error
+        if (!extendableCommand.onCommand(player, commandArgs))
+            Output.getInstance().print("Error while performing command");
     }
 
 }

@@ -1,11 +1,12 @@
 package net.neferett.zuul.gamemiscs;
 
 import lombok.Data;
-import net.neferett.zuul.player.Player;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import net.neferett.zuul.interpreter.Output;
+import net.neferett.zuul.player.Character;
 
 @Data
 public class Room
@@ -26,7 +27,7 @@ public class Room
 
     private List<Exit> exits = new ArrayList<>();
     private List<Item> items = new ArrayList<>();
-    private List<Player> players = new ArrayList<>();
+    private List<Character> characters = new ArrayList<>();
 
     /**
      * Adding exits and cancel if exits array
@@ -35,7 +36,7 @@ public class Room
      */
     public void addExits(Exit...exits) {
         if (exits.length > this.maximumExits || exits.length + this.exits.size() > this.maximumExits) {
-            System.out.println("Too many exits for Room " + this.name + ", maximum allowed " + this.maximumExits);
+            Output.getInstance().print("Too many exits for Room " + this.name + ", maximum allowed " + this.maximumExits);
             return;
         }
 
@@ -74,7 +75,7 @@ public class Room
      * @return boolean
      */
     public boolean containsItem(String name) {
-        return this.getItem(name, -1) != null;
+        return this.getItem(name) != null;
     }
 
     /**
@@ -83,18 +84,7 @@ public class Room
      * @return Item
      */
     public Item getItem(String name) {
-        return this.getItem(name, -1);
-    }
-
-    /**
-     * Get item by name and weight, if weight is lower than 0 it's ignored
-     * @param name Name of item
-     * @param weight Weight of item
-     * @return item
-     */
-    public Item getItem(String name, int weight) {
-        return this.items.stream().filter(e -> e.getName().equalsIgnoreCase(name)
-                && (weight < 0 || e.getWeight() == weight)).findFirst().orElse(null);
+        return this.items.stream().filter(e -> e.getName().equalsIgnoreCase(name)).findFirst().orElse(null);
     }
 
     /**
@@ -103,14 +93,14 @@ public class Room
      * @return boolean
      */
     public boolean removeItem(String name) {
-        Item item = this.getItem(name, -1);
+        Item item = this.getItem(name);
 
         if (null == item)
             return false;
 
         this.removeItem(item);
 
-        return false;
+        return true;
     }
 
     /**
@@ -125,19 +115,19 @@ public class Room
      * Print room exits and items informations
      */
     public void printRoomInformation() {
-        System.out.println("You are " + this.name);
-        System.out.print("Exits: ");
+        Output.getInstance().print("You are " + this.name);
+        Output.getInstance().printWithoutCarriageReturn("Exits: ");
 
-        this.exits.forEach(e -> System.out.print(e.getName() + "(" + e.getRoom().getName() + ") "));
+        this.exits.forEach(e -> Output.getInstance().printWithoutCarriageReturn(e.getName() + "(" + e.getRoom().getName() + ") "));
 
-        System.out.println();
-        System.out.print("Items: ");
+        Output.getInstance().print("");
+        Output.getInstance().printWithoutCarriageReturn("Items: ");
 
         this.getItems().forEach(e ->
-                System.out.print(e.getName()
-                        + '(' + e.getWeight() + ')')
+                Output.getInstance().printWithoutCarriageReturn(e.getName()
+                        + "(" + e.getWeight() + ") ")
         );
 
-        System.out.println();
+        Output.getInstance().print("");
     }
 }

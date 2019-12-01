@@ -14,10 +14,10 @@ public class Exit {
     /**
      * Room name linked| Field constructor
      */
-    private final String room;
+    private final String roomName;
 
     public Room getRoom() {
-        return RoomsHandler.getInstance().getRoom(this.room);
+        return RoomsHandler.getInstance().getRoom(this.roomName);
     }
 
 }

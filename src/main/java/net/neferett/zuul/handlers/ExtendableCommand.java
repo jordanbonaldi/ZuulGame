@@ -1,7 +1,7 @@
 package net.neferett.zuul.handlers;
 
 import lombok.Data;
-import net.neferett.zuul.player.Player;
+import net.neferett.zuul.player.Character;
 
 @Data
 public abstract class ExtendableCommand {
@@ -17,10 +17,10 @@ public abstract class ExtendableCommand {
      * Return false on command error or true and successfull execution
      * Takes in param the whole command
      *
-     * @param player Player Object
+     * @param character Character Object
      * @param args Arguments of the command
      * @return boolean
      */
-    public abstract boolean onCommand(Player player, String ... args);
+    public abstract boolean onCommand(Character character, String ... args);
 
 }

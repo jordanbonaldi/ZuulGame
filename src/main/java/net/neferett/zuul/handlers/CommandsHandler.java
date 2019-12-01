@@ -4,14 +4,27 @@ import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.experimental.Delegate;
 import net.neferett.zuul.Zuul;
-import org.reflections.Reflections;
 
 import java.lang.reflect.Constructor;
+import java.net.URI;
+import java.nio.file.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 @Data
 public class CommandsHandler {
+
+    private final String packageName;
+
+    private final URI packageURI;
+
+    @SneakyThrows
+    public CommandsHandler() {
+        this.packageName = "net.neferett.zuul.commands".replace('.', '/');
+        this.packageURI = Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(this.packageName)).toURI();
+    }
 
     /**
      * Getting handler instance
@@ -28,17 +41,40 @@ public class CommandsHandler {
     @Delegate
     public List<ExtendableCommand> manager = new ArrayList<>();
 
+    @SneakyThrows
+    private Path pathFinder() {
+        Path path = null;
+
+        if (this.packageURI.toString().startsWith("jar:")) {
+            try {
+                path = FileSystems.getFileSystem(this.packageURI).getPath(this.packageName);
+            } catch (final FileSystemNotFoundException e) {
+                path = FileSystems.newFileSystem(this.packageURI, Collections.emptyMap()).getPath(this.packageName);
+            }
+        }
+
+        return path == null ? Paths.get(this.packageURI) : path;
+    }
+
+    @SneakyThrows
+    private Class<? extends ExtendableCommand> pathToClazz(Path file) {
+        final String path = file.toString().replace('/', '.');
+        final String name = path.substring(path.indexOf(this.packageName.replace('/', '.')),
+                path.length() - ".class".length());
+
+        return (Class<? extends ExtendableCommand>) Class.forName(name);
+    }
+
     /**
      * Scanning every classes inside a specific package
      * Checking if it extends ExtendableCommand and has annotation Command.class
      * And send them to the createCommand function
      */
+    @SneakyThrows
     public void searchCommandsInSubPackages() {
-        Reflections reflection = new Reflections("net.neferett.zuul.commands");
+        final Path root = this.pathFinder();
 
-        reflection.getSubTypesOf(ExtendableCommand.class).stream()
-                .filter(e -> e.isAnnotationPresent(Command.class))
-                .forEach(this::createCommand);
+        Files.walk(root).filter(Files::isRegularFile).map(this::pathToClazz).forEach(this::createCommand);
     }
 
     /**

@@ -1,36 +1,74 @@
 package net.neferett.zuul;
 
 import lombok.Data;
-import net.neferett.zuul.gamemiscs.Exit;
-import net.neferett.zuul.gamemiscs.Item;
+import net.neferett.zuul.application.ZuulFX;
+import net.neferett.zuul.handlers.CharacterHandler;
 import net.neferett.zuul.handlers.CommandsHandler;
-import net.neferett.zuul.handlers.PlayersHandler;
 import net.neferett.zuul.handlers.RoomsHandler;
+import net.neferett.zuul.handlers.ViewHandler;
 import net.neferett.zuul.interpreter.Interpreter;
+import net.neferett.zuul.interpreter.Output;
 import net.neferett.zuul.interpreter.ThreadedInterpreter;
+import net.neferett.zuul.interpreter.csv.CSVInterpreter;
+import net.neferett.zuul.interpreter.csv.FileLoader;
 import net.neferett.zuul.player.Player;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+
 @Data
-public class Zuul {
+public class Zuul{
 
     private static Zuul instance;
 
-    private CommandsHandler commandsHandler;
-
+    /**
+     * Interpreter instances
+     */
+    private FileLoader fileLoader;
+    private CSVInterpreter csvInterpreter;
     private Interpreter interpreter;
-
     private Thread threadInterpreter;
 
-    private PlayersHandler playersHandler;
-
+    /**
+     * Handlers instances
+     */
+    private CommandsHandler commandsHandler;
+    private CharacterHandler characterHandler;
     private RoomsHandler roomsHandler;
+    private ViewHandler viewHandler;
 
+    /**
+     * General attributes instances
+     */
+    private List<File> maps;
     private int maxWeight;
+    private ZuulFX zuulFX;
+    private Output output;
+    private boolean javaCompilation;
 
     /**
      * Zuul Constructor (package private)
      */
-    Zuul() {
+    Zuul(boolean javaCompilation, File ... files) throws URISyntaxException, IOException {
+
+        /*
+            Output Stream
+         */
+        this.output = new Output();
+
+        /*
+         * Playable only gui
+         */
+        this.javaCompilation = javaCompilation;
+
+        /*
+         * View modifier
+         */
+        this.viewHandler = new ViewHandler();
 
         /*
          * Creating main instance, to allow getInstance and allowing
@@ -46,7 +84,7 @@ public class Zuul {
         /*
          * Creating the Player Handler
          */
-        this.playersHandler = new PlayersHandler();
+        this.characterHandler = new CharacterHandler();
 
         /*
          * Rooms handler
@@ -74,28 +112,25 @@ public class Zuul {
          * This thread allows multiple tasking at the same time
          */
         this.threadInterpreter = new Thread(new ThreadedInterpreter(this.interpreter));
+
+        if (!javaCompilation)
+            this.maps = Arrays.asList(files);
+        else
+            this.maps = Arrays.asList(Objects.requireNonNull(new File(getClass().getResource("/maps/").getFile()).listFiles()));
     }
 
     /**
      * Creating room and assigning exits
      */
-    void initialiseRooms() {
-        this.roomsHandler.createRoom("outside", "outside the main entrance of the university", 3);
-        this.roomsHandler.createRoom("theatre", "in a lecture theatre", 3);
-        this.roomsHandler.createRoom("lab", "in a computing lab", 3);
-        this.roomsHandler.createRoom("pub", "in the campus pub", 3);
-
-        this.roomsHandler.addExits("outside", new Exit("north","lab"), new Exit("east", "theatre"), new Exit("west", "pub"));
-        this.roomsHandler.addExits("theatre", new Exit("south", "outside"));
-        this.roomsHandler.addExits("lab", new Exit("north", "outside"));
-        this.roomsHandler.addExits("pub", new Exit("east", "outside"), new Exit("west", "theatre"));
-
-        this.roomsHandler.addItemOnRoom("lab", new Item("toto", 2));
+    private void initialiseRooms() {
+        this.csvInterpreter.getRooms().forEach(this.roomsHandler::add);
     }
 
     /**
      * Adding players by args
      * @param args Array of player names''
+     *
+     * @deprecated
      */
     void addPlayers(String... args) {
         for (int i = 0; i < args.length; i += 2) {
@@ -107,7 +142,7 @@ public class Zuul {
                     throw new Exception("Room " + args[i + 1] + " doesn't exists");
                 }
 
-                this.playersHandler.createPlayer(args[i], args[i + 1]);
+                this.characterHandler.createPlayer(args[i], args[i + 1]);
             } catch (Exception e) {
                 e.printStackTrace();
                 System.exit(0);
@@ -116,34 +151,50 @@ public class Zuul {
     }
 
     /**
-     * Launching zuul with default character creation
+     * Generic file loader selected by user
+     *
+     * @param file Game file
      */
-    void launchZuul() {
-        this.playersHandler.createPlayer("PlayerA", "lab");
+    public void mapLoader(File file) {
+        /*
+         * FileLoader for game file "file"
+         */
+        this.fileLoader = new FileLoader(file);
+        this.csvInterpreter = new CSVInterpreter(this.fileLoader).interpretRooms();
 
-        // You can create any player you want here
+        this.csvInterpreter.close();
 
-        //this.playersHandler.createPlayer("PlayerB", "outside");
-
-        this.play();
+        this.initialiseRooms();
     }
+
+    /**
+     * Creating zuul with default character
+     */
+    public void createPlayer() {
+        this.characterHandler.createPlayer("PlayerA", this.roomsHandler.getRooms().get(0).getName());
+        this.characterHandler.createAI("AI 1");
+    }
+
 
     /**
      * Launching commands interpreter thread
      */
-    void play() {
+    public void play() {
 
-        Player firstPlayer = this.playersHandler.getPlayers().get(0);
+        Player firstPlayer = this.characterHandler.getPlayers().get(0);
 
-        System.out.println();
-        System.out.println("Welcome to the World of Zuul!");
-        System.out.println("World of Zuul is a new, incredibly boring adventure game.");
-        System.out.println("Type 'help' if you need help.");
-        System.out.println();
+        this.output.print("");
+        this.output.print("Welcome to the World of Zuul!");
+        this.output.print("World of Zuul is a new, incredibly boring adventure game.");
+        this.output.print("Type 'help' if you need help.");
+        this.output.print("");
 
         firstPlayer.getCurrentRoom().printRoomInformation();
 
-        this.threadInterpreter.start();
+        if (!this.javaCompilation)
+            this.threadInterpreter.start();
+        else
+            ViewHandler.getInstance().setPage("gameView");
     }
 
     public static Zuul getInstance() {

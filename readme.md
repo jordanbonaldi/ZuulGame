@@ -15,19 +15,16 @@ You will be able to run it directly with the IDE run button (play button)
 
  - Linux and MacOS
 				
-		./gradlew jar or gradle jar
+		./gradlew jar or (GUI Version) ./gradlew run
  - Windows
  
-	    gradlew.bat jar
+	    gradlew.bat jar or (GUI Version) gradlew.bat run
 
 > **How to launch the game ?**
 
 - Without arguments
 
-		java -jar <filename>.jar
-- With arguments
-	
-		java -jar <filename>.jar <player1name> <player1room> ... <playerXname> <playerXroom>
+		java -jar <zuul_jar>.jar <game_file>
 
 > **Creating room and items**
 
@@ -93,12 +90,12 @@ The class must contains **Command** annotation command parameters.
 			  
 			  // Checking if item is on player's inventory  
 			  if (item == null) {  
-				  System.out.println(args[0] + "is not in your inventory");  
+				  Output.getInstance().print(args[0] + "is not in your inventory");  
 				  
 				  return false;
 			  }  
 				  
-			  System.out.println("Item: " + item.getName());  
+			  Output.getInstance().print("Item: " + item.getName());  
 			  
 			  return true;
 		 }  

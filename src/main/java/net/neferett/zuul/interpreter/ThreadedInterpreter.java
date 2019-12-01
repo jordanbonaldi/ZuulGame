@@ -2,11 +2,8 @@ package net.neferett.zuul.interpreter;
 
 import lombok.Data;
 import lombok.SneakyThrows;
-import net.neferett.zuul.handlers.PlayersHandler;
-import net.neferett.zuul.player.Player;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import net.neferett.zuul.handlers.CharacterHandler;
+import net.neferett.zuul.player.Character;
 
 @Data
 public class ThreadedInterpreter implements Runnable{
@@ -17,26 +14,6 @@ public class ThreadedInterpreter implements Runnable{
      * Auto initialised (@Data)
      */
     private final Interpreter interpreter;
-
-    /**
-     * Reading input 0 (System.in) until carriage return
-     * @param player Player object to read input on
-     */
-    @SneakyThrows
-    private void readBufferedReader(Player player) {
-        /*
-            Putting players name in console if more than one player
-         */
-        if (PlayersHandler.getInstance().getPlayers().size() > 1)
-         System.out.println(player.getName() + "'s turn:");
-
-        /*
-            Getting player's input
-         */
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-
-        this.interpreter.handleCommand(player, reader.readLine());
-    }
 
     @Override
     @SneakyThrows
@@ -52,9 +29,10 @@ public class ThreadedInterpreter implements Runnable{
             /*
              * Looping over player's to take their commands
              */
-            for (Player p : PlayersHandler.getInstance().getPlayers())
-                if (this.interpreter.isActivated())
-                    this.readBufferedReader(p);
+            for (Character character : CharacterHandler.getInstance().getCharacters()) {
+                Output.getInstance().print(character.getName() + "'s turn");
+                character.nextRound();
+            }
         }
     }
 }
